@@ -1,0 +1,127 @@
+-- # EXAM FOR WEEK 8
+-- ## KEEP IN MIND: YOU ARE DOING THIS FOR YOUR BRIGHT FUTURE, SO GIVE YOUR 120%!
+-- ## ПОМНИТЕ: ВЫ ДЕЛАЕТЕ ЭТО ДЛЯ СВОЕГО СВЕТЛОГО БУДУЩЕГО, ПОЭТОМУ ВЫКЛАДЫВАЙТЕСЬ НА ВСЕ СВОИ 120%!
+
+-- ## RULES:2
+-- > No interner, no help to each other!
+
+-- > Make one file and place all your work there (e.g. azizmurod_orifzoda.py)
+
+-- > Send the file at 
+
+-- > You have 2 hours only
+
+-- ### Task 1 - CREATE
+-- Create tables: Employees, Departments, Locations, Jobs.
+--  - Employees: id, first_name, last_name, email, phone_number, hire_date, job_id, salary, commision_pct, department_id.
+create table employees
+(
+id serial primary key,
+first_name varchar(30) not null,
+last_name varchar(30) not null,
+email varchar(30) unique not null,
+phone_number int unique not null,
+hire_date date,
+job_id int,
+salary int,
+commision_pct int,
+department_id int,
+foreign key (job_id) references jobs(id),
+foreign key (department_id) references departments(id)
+);
+--  - Departments: id, department_name, manager_name, location_id.
+create table departments
+(
+id serial primary key,
+department_name varchar(30) not null,
+manager_name varchar(30) not null,
+location_id int,
+foreign key(location_id) references locations(id)
+)
+--  - Locations: id, city, region, street_address.
+create table locations
+(
+id serial primary key,
+city varchar(30) not null,
+region varchar(30) not null,
+street_address varchar(30) not null
+)
+--  - Jobs: id, title, is_active.
+create table jobs
+(
+id serial primary key,
+title varchar(30) not null,
+is_active bool default false
+)
+--  Realationships:
+--  - one to one: Departments with Location
+--  - one to many: Departments with Employees
+--  - one to many: Jobs with Employees
+
+-- ### Task 2 - INSERT
+--  - INSEERT 5 JOBS - backend, frontend, fullstack, designer, manager.
+insert into jobs(title,is_active) values
+('backend',true),
+('frontend',false),
+('fullstack',false),
+('designer',false),
+('manager',false);
+--  - INSERT 3 DEPARTMENTS - management, accontant, development
+insert into departments(department_name,manager_name,location_id) values
+('management','Alijon',1),
+('accontant','Tavhid',2),
+('management','Abdullo',3);
+--  - INSERT 5 LOCATION - any location
+insert into locations(city,region,street_address) values
+('Hisor','Tajikistan','hisor street'),
+('Dushanbe','Tajikistan','rudaki street'),
+('Moskva','Russia','moskva street'),
+('Ekaterinburg','Russia','ekaterinburg street'),
+('America','USA','america street');
+--  - INSERT 10 EMPLOYEES:
+--     - 3 employees must be managers of each department(3 сотрудника должны быть менеджерами каждого отдела)
+--     - 5 employees must be developers (5 сотрудников должны быть разработчиками)
+--     - 2 сотрудника должны быть из бухгалтерии
+insert into employees(first_name,last_name,email,phone_number,hire_date,job_id,salary,commision_pct,department_id) values
+((select manager_name from departments where id=1),'Qurbonov','alijon@gmail.com',000403068,'2024-09-23',(select id from jobs where id=2),1000,10,(select id from departments where id=3));
+
+-- ### Task 3 ALTER
+--     a) Add a column to store employee birthdate (Добавьте столбец для хранения даты рождения сотрудника)
+alter table employees
+add birthdate date;
+--     b) Change the data type of phone_number in employees to allow more characters (Измените тип данных phone_number в employees, чтобы разрешить больше символов)
+alter table employees
+alter column phone_number type varchar(15);
+--     c) Rename the commission_pct column to commission_percentage in employees(Переименуйте столбец commission_pct в commission_percentage в employees)
+alter table employees
+rename column commision_pct to commission_percentage;
+--     d) Add a unique constraint on the email column in employees if it wasn't defined before (Добавьте уникальное ограничение для столбца email в employees, если оно не было определено ранее)
+alter table employees
+alter column email constraint unique;
+--     e) Modify the is_active column in the jobs table to default to TRUE (Измените столбец is_active в таблице jobs, чтобы значение по умолчанию было TRUE)
+alter table jobs
+alter column is_active
+set default true;
+
+-- ### Task 4 SELECT
+--     a) Filter all departments located in 'New York' (Отфильтровать все отделы, расположенные в «Нью-Йорке»)
+select * from departments where location_id=1;
+--     b) Filter all employees hired after January 1, 2022 (Отфильтровать всех сотрудников, нанятых после 1 января 2022 г.)
+select * from employees where hire_date > '2022-01-01';
+--     c) Filter employees whose email ends with '@example.com' (Отфильтровать сотрудников, чей адрес электронной почты заканчивается на «@example.com»)
+select * from employees where email like '%@gmail.com';
+--     d) Filter jobs where the title contains the word 'Manager' (Отфильтровать вакансии, в названии которых содержится слово «Менеджер»)
+select * from jobs where title='manager';
+--     e) Filter employees who do not belong to the departments with ids 2 and 4 (Отфильтровать сотрудников, которые не относятся к отделам с идентификаторами 2 и 4)
+select * from employees where id!=2 and id!=4;
+--     f) Filter employees with a salary between 4000 and 8000 (Отфильтровать сотрудников с зарплатой от 4000 до 8000)
+select * from employees where salary between 4000 and 8000;
+
+-- ### Task 5 JOIN
+--     a) Retrieve all employees along with their department names (Получить всех сотрудников вместе с названиями их отделов)
+--     b) Retrieve all employees, their department names, and the location city (Получить всех сотрудников, названия их отделов и город расположения)
+--     d) Retrieve all departments and their managers' names (include departments without managers) (Получить все отделы и имена их менеджеров (включая отделы без менеджеров))
+--     e) Retrieve all employees and their departments, including employees without departments and departments without employees (Получить всех сотрудников и их отделы, включая сотрудников без отделов и отделы без сотрудников)
+--     f) Retrieve employees who work in the 'Sales' department along with their job titles (Получить сотрудников, которые работают в отделе «Продажи», вместе с их должностями)
+--     g) Retrieve the number of employees in each department (Получить количество сотрудников в каждом отделе)
+--     h) Retrieve employees whose salary is higher than the average salary of their department (Получить сотрудников, чья зарплата выше средней зарплаты их отдела)
